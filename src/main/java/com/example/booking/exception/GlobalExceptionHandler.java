@@ -60,7 +60,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
-        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class).error("An unexpected error occurred: ", ex);
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
     }
 
     private ResponseEntity<Map<String, Object>> createErrorResponse(HttpStatus status, String message) {
