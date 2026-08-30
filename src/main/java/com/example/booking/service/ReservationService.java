@@ -70,8 +70,29 @@ public class ReservationService {
             validateAndParseStatus(status, false);
         }
 
-        // Build sorting and pagination
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir != null ? sortDir : "asc"), sortBy != null ? sortBy : "id");
+        // Validate sortDir
+        String cleanSortDir = sortDir != null ? sortDir.trim().toLowerCase() : "asc";
+        if (!cleanSortDir.equals("asc") && !cleanSortDir.equals("desc")) {
+            throw new BadRequestException("Sort direction must be either 'asc' or 'desc'");
+        }
+
+        // Validate sortBy
+        String cleanSortBy = sortBy != null ? sortBy.trim() : "id";
+        java.util.List<String> allowedSortFields = java.util.List.of("id", "startTime", "endTime", "price", "status");
+        if (!allowedSortFields.contains(cleanSortBy)) {
+            throw new BadRequestException("Sorting by field '" + cleanSortBy + "' is not supported. Allowed fields: " + allowedSortFields);
+        }
+
+        // Validate page and size
+        if (page < 0) {
+            throw new BadRequestException("Page index must not be less than zero");
+        }
+        if (size <= 0) {
+            throw new BadRequestException("Page size must be greater than zero");
+        }
+
+        Sort.Direction direction = cleanSortDir.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, cleanSortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // Build Specification

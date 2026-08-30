@@ -39,22 +39,26 @@ public class SecurityIntegrationTest {
 
     @BeforeEach
     public void setUp() {
-        userRepository.deleteAll();
-
-        // Create standard user
-        User user = new User();
-        user.setEmail("testuser@example.com");
-        user.setPassword(passwordEncoder.encode("password123"));
-        user.setRole(Role.USER);
-        userRepository.save(user);
+        // Find or create test user with unique email to avoid seeding conflicts
+        User user = userRepository.findByEmail("testuser@example.com")
+                .orElseGet(() -> {
+                    User u = new User();
+                    u.setEmail("testuser@example.com");
+                    u.setPassword(passwordEncoder.encode("password123"));
+                    u.setRole(Role.USER);
+                    return userRepository.save(u);
+                });
         userToken = "Bearer " + tokenProvider.generateToken(user.getEmail(), user.getRole().name());
 
-        // Create admin user
-        User admin = new User();
-        admin.setEmail("testadmin@example.com");
-        admin.setPassword(passwordEncoder.encode("password123"));
-        admin.setRole(Role.ADMIN);
-        userRepository.save(admin);
+        // Find or create admin user with unique email to avoid seeding conflicts
+        User admin = userRepository.findByEmail("testadmin@example.com")
+                .orElseGet(() -> {
+                    User a = new User();
+                    a.setEmail("testadmin@example.com");
+                    a.setPassword(passwordEncoder.encode("password123"));
+                    a.setRole(Role.ADMIN);
+                    return userRepository.save(a);
+                });
         adminToken = "Bearer " + tokenProvider.generateToken(admin.getEmail(), admin.getRole().name());
     }
 

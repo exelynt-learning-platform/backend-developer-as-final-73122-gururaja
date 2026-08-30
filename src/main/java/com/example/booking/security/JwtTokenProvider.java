@@ -20,7 +20,19 @@ public class JwtTokenProvider {
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expiration) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        byte[] keyBytes;
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            keyBytes = digest.digest(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            if (keyBytes.length < 32) {
+                byte[] padded = new byte[32];
+                System.arraycopy(keyBytes, 0, padded, 0, Math.min(keyBytes.length, 32));
+                keyBytes = padded;
+            }
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expiration = expiration;
     }
 
